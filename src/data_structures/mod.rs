@@ -8,6 +8,7 @@ mod linked_list;
 mod queue;
 mod rb_tree;
 mod segment_tree;
+mod segment_tree_sum;
 mod stack_using_singly_linked_list;
 mod trie;
 
@@ -22,5 +23,6 @@ pub use self::linked_list::LinkedList;
 pub use self::queue::Queue;
 pub use self::rb_tree::RBTree;
 pub use self::segment_tree::SegmentTree;
+pub use self::segment_tree_sum::RangeSumSegmentTree;
 pub use self::stack_using_singly_linked_list::Stack;
 pub use self::trie::Trie;
