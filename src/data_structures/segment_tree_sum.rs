@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 /// This implementation of segment tree is built on
 /// an array of i32, and supports the following operation:
 /// 1. given an index i, j, query the sum of array in range [i, j]
@@ -23,12 +24,27 @@ impl RangeSumSegmentTree {
     pub fn from_vec(values: &[i32]) -> Self {
         let n = values.len();
         // our arr is 1-indexed
-        let mut arr = vec![0; 2 * n + 2];
-        let mark = vec![0; 2 * n + 2];
+        let length = calculate_length(n);
+        let mut tree = Self {
+            len: n,
+            arr: vec![0; length],
+            mark: vec![0; length],
+        };
 
-        build_rec(&mut arr, values, 1, n, 1);
+        tree.build_rec(values, 1, n, 1);
 
-        Self { len: n, arr, mark }
+        tree
+    }
+
+    fn build_rec(&mut self, values: &[i32], left: usize, right: usize, p: usize) {
+        if left == right {
+            self.arr[p] = values[left - 1];
+            return;
+        }
+        let mid = left + (right - left) / 2;
+        self.build_rec(values, left, mid, p * 2);
+        self.build_rec(values, mid + 1, right, p * 2 + 1);
+        self.arr[p] = self.arr[p * 2] + self.arr[p * 2 + 1];
     }
 
     /// add diff to all element in range [i, j]
@@ -89,31 +105,22 @@ impl RangeSumSegmentTree {
     }
 }
 
-fn build_rec(arr: &mut Vec<i32>, values: &[i32], left: usize, right: usize, p: usize) {
-    if left == right {
-        arr[p] = values[left - 1];
-        return;
+// calculate the length needed for
+// a segmentree covering range [1, n]
+fn calculate_length(n: usize) -> usize {
+    let mut h = 1;
+    let mut cur = n;
+    while cur != 1 {
+        cur = (cur + 1) / 2;
+        h += 1;
     }
-    let mid = left + (right - left) / 2;
-    build_rec(arr, values, left, mid, p * 2);
-    build_rec(arr, values, mid + 1, right, p * 2 + 1);
-    arr[p] = arr[p * 2] + arr[p * 2 + 1];
+    2usize.pow(h.try_into().unwrap())
 }
 
 #[cfg(test)]
 mod tests {
 
     use super::*;
-
-    #[test]
-    fn test_build() {
-        let values = [1, 2, 3, 4, 5, 6];
-        let seg_tree = RangeSumSegmentTree::from_vec(&values);
-        assert_eq!(
-            vec![0, 21, 6, 15, 3, 3, 9, 6, 1, 2, 0, 0, 4, 5],
-            seg_tree.arr
-        );
-    }
 
     #[test]
     fn test_query() {
@@ -145,5 +152,13 @@ mod tests {
         // new values should be [2, 5, 0, 2, 3, 5]
         assert_eq!(8, seg_tree.query(5, 6));
         assert_eq!(17, seg_tree.query(0, 6));
+    }
+
+    #[test]
+    fn test_build() {
+        for length in 10..10000 {
+            let values = vec![2; length];
+            let _seg_tree = RangeSumSegmentTree::from_vec(&values[..]);
+        }
     }
 }
